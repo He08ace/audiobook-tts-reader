@@ -4,7 +4,7 @@ import tempfile
 
 # Your ElevenLabs API key
 API_KEY = "sk_079e3e853ca2e92309cef079e2a3adbb36d55c845cc36712"
-VOICE_ID = "Rachel"  # You can change to "Bella", "Antoni", etc.
+VOICE_ID = "21m00Tcm4TlvDq8ikWAM"  # You can change to "Bella", "Antoni", etc.
 
 # Audiobook Chapters
 chapters = {
