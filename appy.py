@@ -27,5 +27,34 @@ text = chapters[selected_chapter]
 st.subheader(selected_chapter)
 st.write(text)
 
-# Function to Get Audio
-def get_audio_
+# ✅ FIXED FUNCTION STARTS HERE
+def get_audio_from_elevenlabs(text, voice_id="Rachel"):
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "xi-api-key": API_KEY,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "text": text,
+        "model_id": "eleven_monolingual_v1",
+        "voice_settings": {
+            "stability": 0.4,
+            "similarity_boost": 0.75
+        }
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
+            fp.write(response.content)
+            return fp.name
+    else:
+        st.error("⚠️ Failed to generate audio. Check your API key or quota.")
+        return None
+
+# Play Button
+if st.button("🔊 Play with ElevenLabs Voice"):
+    audio_file_path = get_audio_from_elevenlabs(text, VOICE_ID)
+    if audio_file_path:
+        st.audio(audio_file_path, format="audio/mp3")
