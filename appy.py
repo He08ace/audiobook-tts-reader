@@ -1,6 +1,10 @@
 import streamlit as st
-from gtts import gTTS
+import requests
 import tempfile
+
+# Your ElevenLabs API key
+API_KEY = "sk_079e3e853ca2e92309cef079e2a3adbb36d55c845cc36712"
+VOICE_ID = "Rachel"  # You can change to "Bella", "Antoni", etc.
 
 # Audiobook Chapters
 chapters = {
@@ -10,20 +14,18 @@ chapters = {
     "Chapter 3: Lessons Learned": "Every mistake taught the dreamer something valuable.",
 }
 
-st.set_page_config(page_title="Audiobook TTS Reader", layout="wide")
+# Streamlit Layout
+st.set_page_config(page_title="Audiobook Reader", layout="wide")
+st.title("📖 Audiobook TTS Reader")
+st.caption("Now powered by ElevenLabs Voice AI")
 
-st.title("📖 Audiobook Reader with TTS")
-st.caption("Powered by Google Text-to-Speech (gTTS)")
-
-selected_chapter = st.selectbox("Choose a chapter to read and listen:", list(chapters.keys()))
+# Chapter Selector
+selected_chapter = st.selectbox("Choose a chapter", list(chapters.keys()))
 text = chapters[selected_chapter]
 
+# Display Selected Text
 st.subheader(selected_chapter)
 st.write(text)
 
-if st.button("🔊 Play Audio"):
-    tts = gTTS(text=text, lang='en')
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
-        tts.save(fp.name)
-        st.audio(fp.name, format='audio/mp3')
-  
+# Function to Get Audio
+def get_audio_
