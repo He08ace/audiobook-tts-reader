@@ -1,60 +1,55 @@
 import streamlit as st
 import requests
-import tempfile
+from io import BytesIO
+from pydub import AudioSegment
 
-# Your ElevenLabs API key
-API_KEY = "sk_050fb6eb08fe227c482661ca4036baba9194716d2f737788"
-VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
+# === YOUR API KEY HERE ===
+API_KEY = "sk_079e3e853ca2e92309cef079e2a3adbb36d55c845cc36712"
 
-# Audiobook Chapters
-chapters = {
-    "Introduction": "Welcome to your audiobook. This is the introduction.",
-    "Chapter 1: The Journey Begins": "Once upon a time, in a village far away, a young dreamer set out on an adventure.",
-    "Chapter 2: The First Challenge": "The path ahead was steep, but courage lit the way.",
-    "Chapter 3: Lessons Learned": "Every mistake taught the dreamer something valuable.",
+# === VOICE OPTIONS ===
+voice_options = {
+    "Rachel (female, natural)": "21m00Tcm4TlvDq8ikWAM",
+    "Bella (female, energetic)": "EXAVITQu4vr4xnSDxMaL",
+    "Antoni (male, calm)": "ErXwobaYiN019PkySvjV",
+    "Elli (child-like, high)": "MF3mGyEYCl7XYWbV9V6O",
+    "Josh (male, narrator)": "TxGEqnHWrfWFTfGW9XjX",
 }
 
-# Streamlit Layout
-st.set_page_config(page_title="Audiobook Reader", layout="wide")
+# === Streamlit Interface ===
 st.title("📖 Audiobook TTS Reader")
-st.caption("Now powered by ElevenLabs Voice AI")
 
-# Chapter Selector
-selected_chapter = st.selectbox("Choose a chapter", list(chapters.keys()))
-text = chapters[selected_chapter]
+# Text content (you can add more chapters here)
+chapter_text = """
+Once upon a time in a land far, far away, there was a curious fox who wanted to explore the world beyond the forest...
+"""
 
-# Display Selected Text
-st.subheader(selected_chapter)
-st.write(text)
+# Dropdown to select voice
+selected_voice = st.selectbox("🎤 Choose a voice", list(voice_options.keys()))
+voice_id = voice_options[selected_voice]
 
-# ✅ FIXED FUNCTION STARTS HERE
-def get_audio_from_elevenlabs(text, voice_id="Rachel"):
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {
-        "xi-api-key": API_KEY,
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "text": text,
-        "model_id": "eleven_monolingual_v1",
-        "voice_settings": {
-            "stability": 0.4,
-            "similarity_boost": 0.75
-        }
-    }
-
-    response = requests.post(url, json=payload, headers=headers)
-
-    if response.status_code == 200:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
-            fp.write(response.content)
-            return fp.name
-    else:
-        st.error("⚠️ Failed to generate audio. Check your API key or quota.")
-        return None
-
-# Play Button
+# Button to trigger TTS
 if st.button("🔊 Play with ElevenLabs Voice"):
-    audio_file_path = get_audio_from_elevenlabs(text, VOICE_ID)
-    if audio_file_path:
-        st.audio(audio_file_path, format="audio/mp3")
+    with st.spinner("Generating audio..."):
+        response = requests.post(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+            headers={
+                "xi-api-key": API_KEY,
+                "Content-Type": "application/json"
+            },
+            json={
+                "text": chapter_text,
+                "model_id": "eleven_monolingual_v1",
+                "voice_settings": {
+                    "stability": 0.4,
+                    "similarity_boost": 0.7
+                }
+            }
+        )
+        if response.status_code == 200:
+            audio = AudioSegment.from_file(BytesIO(response.content), format="mp3")
+            audio.export("output.mp3", format="mp3")
+            audio_bytes = BytesIO()
+            audio.export(audio_bytes, format='mp3')
+            st.audio(audio_bytes, format='audio/mp3')
+        else:
+            st.error(f"⚠️ Failed to generate audio: {response.status_code} - {response.text}")
